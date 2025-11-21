@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Governance: The Card Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #7c3aed 50%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .stats-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .stat-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .stat-bar {
+            background: #334155;
+            border-radius: 9999px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.5s ease, background-color 0.3s ease;
+        }
+
+        .stat-value {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .card-area {
+            max-width: 500px;
+            width: 100%;
+            height: 550px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(124, 58, 237, 0.3);
+            cursor: grab;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease-out;
+        }
+
+        .card.grabbing {
+            cursor: grabbing;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card-number {
+            color: #a78bfa;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .card-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .event-text {
+            font-size: 20px;
+            line-height: 1.6;
+            text-align: center;
+            color: #cbd5e1;
+        }
+
+        .result-text {
+            font-size: 18px;
+            line-height: 1.6;
+            text-align: center;
+            color: #c4b5fd;
+            font-style: italic;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .choice-btn {
+            padding: 20px 16px;
+            border-radius: 12px;
+            border: 2px solid;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+        }
+
+        .choice-btn.left {
+            background: rgba(220, 38, 38, 0.2);
+            border-color: #ef4444;
+        }
+
+        .choice-btn.left:hover {
+            background: rgba(220, 38, 38, 0.4);
+            transform: scale(1.05);
+        }
+
+        .choice-btn.right {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .choice-btn.right:hover {
+            background: rgba(37, 99, 235, 0.4);
+            transform: scale(1.05);
+        }
+
+        .swipe-hints {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+        }
+
+        .hint-left, .hint-right {
+            font-size: 48px;
+            font-weight: 700;
+            transition: opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .hint-left {
+            color: #ef4444;
+        }
+
+        .hint-right {
+            color: #3b82f6;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .game-over {
+            max-width: 500px;
+            width: 100%;
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 48px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-over h2 {
+            font-size: 36px;
+            color: #ef4444;
+            margin-bottom: 16px;
+        }
+
+        .game-over p {
+            color: #cbd5e1;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+
+        .final-stats {
+            margin-bottom: 24px;
+        }
+
+        .final-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .final-stat.critical {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .restart-btn {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .restart-btn:hover {
+            background: #6d28d9;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="stats-container">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-header">
+                        <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span>Human-AI</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="humanAI-bar" style="width: 50%; background: #eab308;"></div>
+                    </div>
+                    <div class="stat-value" id="humanAI-value">50</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-header">
+                        <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <span>Social</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="social-bar" style="width: 50%; background: #eab308;"></div>
+                    </div>
+                    <div class="stat-value" id="social-value">50</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-header">
+                        <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Finance</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="finance-bar" style="width: 50%; background: #eab308;"></div>
+                    </div>
+                    <div class="stat-value" id="finance-value">50</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-header">
+                        <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <span>Control</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="control-bar" style="width: 50%; background: #eab308;"></div>
+                    </div>
+                    <div class="stat-value" id="control-value">50</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-header">
+                        <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span>Tech</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="tech-bar" style="width: 50%; background: #eab308;"></div>
+                    </div>
+                    <div class="stat-value" id="tech-value">50</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-area">
+            <div class="card" id="card">
+                <div class="card-header">
+                    <div class="card-number" id="card-number">Card 1 / 20</div>
+                    <div class="card-title" id="card-title">Loading...</div>
+                </div>
+                <div class="card-content">
+                    <div class="event-text" id="event-text"></div>
+                    <div class="result-text hidden" id="result-text"></div>
+                </div>
+                <div class="choices" id="choices">
+                    <button class="choice-btn left" id="choice-a">
+                        <span>←</span>
+                        <span id="choice-a-text"></span>
+                    </button>
+                    <button class="choice-btn right" id="choice-b">
+                        <span id="choice-b-text"></span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </div>
+            <div class="swipe-hints">
+                <div class="hint-left" id="hint-left">←</div>
+                <div class="hint-right" id="hint-right">→</div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            Swipe or click to choose • Keep all stats balanced
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="game-over hidden">
+        <h2>Game Over</h2>
+        <p>Your reign has ended. A critical stat reached its limit.</p>
+        <div class="final-stats" id="final-stats"></div>
+        <button class="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        let cards = [];
+        let currentCardIndex = 0;
+        let stats = {
+            humanAI: 50,
+            social: 50,
+            finance: 50,
+            control: 50,
+            tech: 50
+        };
+        let isChoosing = false;
+        let isDragging = false;
+        let startX = 0;
+        let currentRotation = 0;
+
+        // Load cards from JSON
+        fetch('localization.json')
+            .then(response => response.json())
+            .then(data => {
+                cards = data.Sheet1.map(card => ({
+                    ...card,
+                    stats_A: parseStats(card.stats_A),
+                    stats_B: parseStats(card.stats_B)
+                }));
+                displayCard();
+            })
+            .catch(error => {
+                console.error('Error loading cards:', error);
+                document.getElementById('event-text').textContent = 'Error loading game data. Please refresh.';
+            });
+
+        function parseStats(statsString) {
+            const stats = {};
+            if (!statsString || statsString === 'None') return stats;
+            
+            const parts = statsString.split(',').map(s => s.trim());
+            parts.forEach(part => {
+                const [key, value] = part.split(' ');
+                const statKey = key.toLowerCase().replace('-', '');
+                stats[statKey] = parseInt(value);
+            });
+            return stats;
+        }
+
+        function displayCard() {
+            if (currentCardIndex >= cards.length) {
+                currentCardIndex = 0; // Loop back
+            }
+
+            const card = cards[currentCardIndex];
+            document.getElementById('card-number').textContent = `Card ${currentCardIndex + 1} / ${cards.length}`;
+            document.getElementById('card-title').textContent = card.card_name;
+            document.getElementById('event-text').textContent = card.event_text;
+            document.getElementById('choice-a-text').textContent = card.choice_A;
+            document.getElementById('choice-b-text').textContent = card.choice_B;
+            document.getElementById('event-text').classList.remove('hidden');
+            document.getElementById('result-text').classList.add('hidden');
+            document.getElementById('choices').classList.remove('hidden');
+        }
+
+        function updateStats() {
+            for (let key in stats) {
+                const value = Math.max(0, Math.min(100, stats[key]));
+                stats[key] = value;
+                
+                const bar = document.getElementById(`${key}-bar`);
+                const valueEl = document.getElementById(`${key}-value`);
+                
+                bar.style.width = `${value}%`;
+                valueEl.textContent = value;
+                
+                if (value < 30) {
+                    bar.style.background = '#ef4444';
+                } else if (value > 70) {
+                    bar.style.background = '#22c55e';
+                } else {
+                    bar.style.background = '#eab308';
+                }
+            }
+        }
+
+        function checkGameOver() {
+            for (let key in stats) {
+                if (stats[key] <= 0 || stats[key] >= 100) {
+                    showGameOver();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function showGameOver() {
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            
+            const finalStats = document.getElementById('final-stats');
+            finalStats.innerHTML = '';
+            
+            const statLabels = {
+                humanAI: 'Human-AI',
+                social: 'Social',
+                finance: 'Finance',
+                control: 'Control',
+                tech: 'Tech'
+            };
+            
+            for (let key in stats) {
+                const div = document.createElement('div');
+                div.className = 'final-stat';
+                if (stats[key] <= 0 || stats[key] >= 100) {
+                    div.classList.add('critical');
+                }
+                div.innerHTML = `<span>${statLabels[key]}:</span><span>${stats[key]}</span>`;
+                finalStats.appendChild(div);
+            }
+        }
+
+        function restartGame() {
+            stats = {
+                humanAI: 50,
+                social: 50,
+                finance: 50,
+                control: 50,
+                tech: 50
+            };
+            currentCardIndex = 0;
+            isChoosing = false;
+            updateStats();
+            displayCard();
+            document.getElementById('game-container').classList.remove('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+        }
+
+        function applyChoice(choice) {
+            if (isChoosing) return;
+            isChoosing = true;
+
+            const card = cards[currentCardIndex];
+            const statChanges = choice === 'A' ? card.stats_A : card.stats_B;
+            const resultText = choice === 'A' ? card.text_click_A : card.text_click_B;
+
+            document.getElementById('event-text').classList.add('hidden');
+            document.getElementById('result-text').textContent = resultText;
+            document.getElementById('result-text').classList.remove('hidden');
+            document.getElementById('choices').classList.add('hidden');
+
+            setTimeout(() => {
+                for (let key in statChanges) {
+                    stats[key] += statChanges[key];
+                }
+                updateStats();
+
+                if (!checkGameOver()) {
+                    setTimeout(() => {
+                        isChoosing = false;
+                        currentCardIndex++;
+                        displayCard();
+                    }, 2000);
+                }
+            }, 1500);
+        }
+
+        // Button clicks
+        document.getElementById('choice-a').addEventListener('click', () => applyChoice('A'));
+        document.getElementById('choice-b').addEventListener('click', () => applyChoice('B'));
+
+        // Drag functionality
+        const cardEl = document.getElementById('card');
+        
+        function handleDragStart(x) {
+            if (isChoosing) return;
+            isDragging = true;
+            startX = x;
+            cardEl.classList.add('grabbing');
+        }
+
+        function handleDragMove(x) {
+            if (!isDragging || isChoosing) return;
+            const diff = x - startX;
+            currentRotation = diff / 10;
+            cardEl.style.transform = `rotate(${currentRotation}deg) translateX(${currentRotation * 3}px)`;
+
+            document.getElementById('hint-left').style.opacity = currentRotation < -2 ? '1' : '0';
+            document.getElementById('hint-right').style.opacity = currentRotation > 2 ? '1' : '0';
+        }
+
+        function handleDragEnd(x) {
+            if (!isDragging || isChoosing) return;
+            const diff = x - startX;
+            
+            if (Math.abs(diff) > 100) {
+                applyChoice(diff > 0 ? 'B' : 'A');
+            }
+
+            isDragging = false;
+            currentRotation = 0;
+            cardEl.style.transform = '';
+            cardEl.classList.remove('grabbing');
+            document.getElementById('hint-left').style.opacity = '0';
+            document.getElementById('hint-right').style.opacity = '0';
+        }
+
+        // Mouse events
+        cardEl.addEventListener('mousedown', (e) => handleDragStart(e.clientX));
+        document.addEventListener('mousemove', (e) => handleDragMove(e.clientX));
+        document.addEventListener('mouseup', (e) => handleDragEnd(e.clientX));
+
+        // Touch events
+        cardEl.addEventListener('touchstart', (e) => handleDragStart(e.touches[0].clientX));
+        cardEl.addEventListener('touchmove', (e) => handleDragMove(e.touches[0].clientX));
+        cardEl.addEventListener('touchend', (e) => handleDragEnd(e.changedTouches[0].clientX));
+
+        updateStats();
+    </script>
+</body>
+</html>
