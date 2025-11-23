@@ -1,4 +1,4 @@
-
+[
  {
   "stage": 1,
   "sequence_id": 0,
@@ -246,3 +246,4 @@
   "stats_C": "Arch_Imperator +4; GAME_WIN_CONTROL",
   "stats_D": "Arch_Ascendant +3; GAME_WIN_MERGE"
  }
+]
