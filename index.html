@@ -546,8 +546,9 @@
             
             console.log('Loading:', cardType, imageName); // Debug line
             
-            // Background image
-            const bgPath = `${cardType}/card_images/${imageName}.webp`;
+                        // Background image
+            const folderName = cardType.replace(/ /g, '_'); // "max tech" → "max_tech"
+            const bgPath = `${folderName}/card_images/${imageName}.webp`;
             document.getElementById('card-bg').style.backgroundImage = `url(${bgPath})`;
             
             // Build choices
@@ -563,10 +564,8 @@
                 btn.onclick = () => makeChoice(card, letter);
                 
                 // Choice button background
-                const choicePath = `${cardType}/choice_${letter.toLowerCase()}/${imageName}.webp`;
+                const choicePath = `${folderName}/choice_${letter.toLowerCase()}/${imageName}.webp`;
                 btn.style.backgroundImage = `url(${choicePath})`;
-                btn.style.backgroundSize = 'cover';
-                btn.style.backgroundPosition = 'center';
                 
                 // Stat preview
                 const preview = document.createElement('div');
