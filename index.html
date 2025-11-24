@@ -761,32 +761,40 @@
             showCard();
         }
 
-        function updateHUD() {
-            document.getElementById('year-display').textContent = 
-                `Year: ${gameState.year} | Tech: ${gameState.tech} | Stage: ${gameState.stage}`;
-            
-            Object.keys(gameState.stats).forEach(stat => {
-                const value = gameState.stats[stat];
-                const isLocked = value === 999;
-                const displayValue = isLocked ? '∞' : value;
-                const percentage = isLocked ? 100 : (value / 10) * 100;
+            function updateHUD() {
+                document.getElementById('year-display').textContent = 
+                    `Year: ${gameState.year} | Tech: ${gameState.tech} | Stage: ${gameState.stage}`;
                 
-                const statKey = stat.toLowerCase().replace('-', '');
-                const valEl = document.getElementById(`${statKey}-val`);
-                const fillEl = document.getElementById(`${statKey}-fill`);
+                Object.keys(gameState.stats).forEach(stat => {
+                    const value = gameState.stats[stat];
+                    const isLocked = value === 999;
+                    const displayValue = isLocked ? '∞' : value;
+                    const percentage = isLocked ? 100 : (value / 10) * 100;
+                    
+                    const statKey = stat.toLowerCase().replace('-', '');
+                    const valEl = document.getElementById(`${statKey}-val`);
+                    const fillEl = document.getElementById(`${statKey}-fill`);
+                    
+                    if (valEl) valEl.textContent = displayValue;
+                    if (fillEl) {
+                        fillEl.style.width = `${percentage}%`;
+                        
+                        // Color based on value threshold
+                        if (isLocked) {
+                            fillEl.style.background = 'linear-gradient(90deg, #ff00ff, #cc00cc)';
+                        } else if (value <= 3) {
+                            fillEl.style.background = 'linear-gradient(90deg, #ff4444, #cc0000)'; // RED
+                        } else {
+                            fillEl.style.background = 'linear-gradient(90deg, #00ff88, #00cc66)'; // GREEN
+                        }
+                    }
+                });
                 
-                if (valEl) valEl.textContent = displayValue;
-                if (fillEl) {
-                    fillEl.style.width = `${percentage}%`;
-                    if (isLocked) fillEl.classList.add('locked');
-                }
-            });
-            
-            const archetypeStr = Object.entries(gameState.archetypes)
-                .map(([k, v]) => `${k}:${v}`)
-                .join(' | ');
-            document.getElementById('archetype-display').textContent = `Archetypes: ${archetypeStr}`;
-        }
+                const archetypeStr = Object.entries(gameState.archetypes)
+                    .map(([k, v]) => `${k}:${v}`)
+                    .join(' | ');
+                document.getElementById('archetype-display').textContent = `Archetypes: ${archetypeStr}`;
+            }
 
                 function previewStats(statsStr) {
             const tempStats = { ...gameState.stats };
@@ -801,16 +809,20 @@
                 }
             });
             
-            Object.keys(tempStats).forEach(stat => {
+            // UPDATE ALL STATS, not just the one in the string
+            Object.keys(gameState.stats).forEach(stat => {
                 const value = tempStats[stat];
                 const percentage = (value / 10) * 100;
                 const statKey = stat.toLowerCase().replace('-', '');
                 const fillEl = document.getElementById(`${statKey}-fill`);
                 if (fillEl) {
                     fillEl.style.width = `${percentage}%`;
+                    // Color based on CHANGE, not final value
                     fillEl.style.background = value > gameState.stats[stat] 
-                        ? 'linear-gradient(90deg, #88ff88, #66cc66)' // lighter green
-                        : 'linear-gradient(90deg, #ff8888, #cc6666)'; // red
+                        ? 'linear-gradient(90deg, #88ff88, #66cc66)'
+                        : value < gameState.stats[stat]
+                        ? 'linear-gradient(90deg, #ff8888, #cc6666)'
+                        : 'linear-gradient(90deg, #00ff88, #00cc66)'; // no change
                 }
             });
         }
