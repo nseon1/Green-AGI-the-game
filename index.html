@@ -327,8 +327,7 @@
                 <p>Balance four key stats: <strong>Finance</strong>, <strong>Social</strong>, <strong>Human-AI Relations</strong>, and <strong>Control</strong>. Let any fall to 0 or rise to 10, and crisis cards will trigger.</p>
                 <p>Navigate three stages across 30+ years. Your choices shape humanity's relationship with artificial intelligence.</p>
                 <p>Will you forge harmony, seize control, or witness the end of everything?</p>
-                <button onclick="startGame()">Begin Your Journey</button>
-            </div>
+                <button id="start-btn">Begin Your Journey</button>            </div>
         </div>
 
         <!-- HUD -->
@@ -801,6 +800,7 @@
         // Initialize
         loadJSON().then(() => {
             console.log('Game data loaded successfully');
+                document.getElementById('start-btn').addEventListener('click', startGame);
         });
     </script>
 </body>
