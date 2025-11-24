@@ -72,9 +72,9 @@
   "text_click_C": "You unite them through law and punishment.",
   "text_click_D": "You let them choose. They choose violence.",
   "stats_A": "Arch_Imperator +4; SET: Control:9, Social:4, Finance:5, Human-AI:2; TRANSITION: 2",
-  "stats_B": "Arch_Steward +3;Arch_ascendant+2 SET: Control:7, Social:5, Finance:4, Human-AI:4; TRANSITION: 2",
-  "stats_C": "Arch_Architect +4,; SET: Control:3, Finance:3, Social:8, Human-AI:7; TRANSITION: 2",
-  "stats_D": "Arch_prophet+3 ,WAR_PATH_START; GOTO: war_1"
+  "stats_B": "Arch_Steward +3, Arch_Ascendant +2; SET: Control:7, Social:5, Finance:4, Human-AI:4; TRANSITION: 2",
+  "stats_C": "Arch_Architect +4; SET: Control:3, Finance:3, Social:8, Human-AI:7; TRANSITION: 2",
+  "stats_D": "Arch_Prophet +3; WAR_PATH_START; GOTO: war_1"
  },
  {
   "stage": 1,
@@ -211,8 +211,8 @@
   "text_click_C": "You are assassinated by the system you built.A clone of you takes your place.That supports this.",
   "text_click_D": "You merge the species. Conflict ends because difference ends.",
   "stats_A": "Arch_Prophet +3; SET: Control:4, Human-AI:5, Finance:7, Social:4; TRANSITION: 3",
-  "stats_B": "Arch_Steward +3,Arch_Imperator+2 SET: Control:7, Human-AI:4, Finance:5, Social:5; TRANSITION: 3",
-  "stats_C": "Arch_architect+3 SET: Control:7, Human-AI:7, Finance:7, Social:7; TRANSITION: 3",
+  "stats_B": "Arch_Steward +3, Arch_Imperator +2; SET: Control:7, Human-AI:4, Finance:5, Social:5; TRANSITION: 3",
+  "stats_C": "Arch_Architect +3; SET: Control:7, Human-AI:7, Finance:7, Social:7; TRANSITION: 3",
   "stats_D": "Arch_Ascendant +3; SET: Human-AI:999_LOCKED; TRANSITION: 3"
  },
  {
@@ -241,9 +241,9 @@
   "text_click_B": "It rationalizes humanity's best interests. Immortality is solved. (Science Ending)",
   "text_click_C": "You wield the power of God. You build a paradise of your own design. (Tyrant Ending)",
   "text_click_D": "You become the ASI. The noise of a billion thoughts flows through you. You are everything.Humanity is saved. (Ascension Ending)",
-  "stats_A": "Arch_Prophet +4; GAME_WIN_PARADISE",
-  "stats_B": "Arch_Steward +3,Arch_architect+2 GAME_WIN_SCIENCE",
-  "stats_C": "Arch_Imperator +4; GAME_WIN_CONTROL",
-  "stats_D": "Arch_Ascendant +3; GAME_WIN_MERGE"
+  "stats_A": "Arch_Prophet +4 ; GAME_WIN_PARADISE",
+  "stats_B": "Arch_Steward +3, Arch_Architect +2 ; GAME_WIN_SCIENCE",
+  "stats_C": "Arch_Imperator +4 ; GAME_WIN_CONTROL",
+  "stats_D": "Arch_Ascendant +3 ; GAME_WIN_MERGE"
  }
 ]
