@@ -546,10 +546,11 @@
             
             console.log('Loading:', cardType, imageName); // Debug line
             
-                        // Background image
-            const folderName = cardType.replace(/ /g, '_'); // "max tech" → "max_tech"
+            // Background image
             const CLOUDINARY_BASE = 'https://res.cloudinary.com/dadn9n77f/image/upload/';
+            const folderName = cardType.replace(/ /g, '_');
             const bgPath = `${CLOUDINARY_BASE}${folderName}/card_images/${imageName}.webp`;
+            document.getElementById('card-bg').style.backgroundImage = `url(${bgPath})`; 
             
             // Build choices
             const choicesDiv = document.getElementById('choices');
