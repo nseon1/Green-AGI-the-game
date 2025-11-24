@@ -537,13 +537,13 @@
             if (card.sequence_id !== undefined) {
                 cardType = 'max tech';
                 imageName = card.sequence_id;
-            } else if (card.trigger) {
-                cardType = 'special';
-                imageName = card.number || card['card number']; // Try both
-            } else {
-                cardType = 'regular';
-                imageName = card['card number'] || card.number; // Try both
-            }
+                } } else if (card.trigger) {
+                    cardType = 'special';
+                    imageName = card.number ?? card['card number'];
+                } else {
+                    cardType = 'regular';
+                    imageName = card['card number'] ?? card.number;
+                }
             
             console.log('Loading:', cardType, imageName); // Debug line
             
