@@ -567,6 +567,8 @@
                 // Choice button background
                 const choicePath = `${CLOUDINARY_BASE}${folderName}/choice_${letter.toLowerCase()}/${imageName}.webp`;
                 btn.style.backgroundImage = `url(${choicePath})`;
+                btn.style.backgroundSize = 'cover';
+                btn.style.backgroundPosition = 'center';
                 
                 // Stat preview
                 const preview = document.createElement('div');
