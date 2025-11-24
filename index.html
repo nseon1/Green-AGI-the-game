@@ -932,16 +932,22 @@
                 
                 console.log('Updating:', statKey, value, 'was', gameState.stats[stat]);
                 
-                if (fillEl) {
-                    const oldPercentage = (gameState.stats[stat] / 10) * 100;
-                    fillEl.style.width = `${percentage}%`;
-                    fillEl.style.setProperty('--ghost-width', `${oldPercentage}%`); // ADD THIS
-                    fillEl.style.background = value > gameState.stats[stat] 
-                        ? 'linear-gradient(90deg, #00ff00, #00dd00)'
-                        : value < gameState.stats[stat]
-                        ? 'linear-gradient(90deg, #ff8888, #cc6666)'
-                        : 'linear-gradient(90deg, #00ff88, #00cc66)';
-                }
+            if (fillEl) {
+                const oldPercentage = (gameState.stats[stat] / 10) * 100;
+                const newPercentage = (value / 10) * 100;
+                
+                fillEl.style.width = `${newPercentage}%`;
+                
+                // ALWAYS show ghost bar at OLD position
+                fillEl.style.setProperty('--ghost-width', `${oldPercentage}%`);
+                
+                fillEl.style.background = value > gameState.stats[stat] 
+                    ? 'linear-gradient(90deg, #00ff00, #00dd00)'  // Green for increase
+                    : value < gameState.stats[stat]
+                    ? 'linear-gradient(90deg, #ff8888, #cc6666)'  // Red for decrease
+                    : 'linear-gradient(90deg, #00ff88, #00cc66)'; // Normal
+            }﻿
+                
             });
         }
         function showEnding(statsStr) {
