@@ -530,23 +530,22 @@
             document.getElementById('card-title').textContent = card.card_name;
             document.getElementById('card-text').textContent = card.event_text;
             
-            // Background image -
+            // Determine card type
             let cardType, imageName;
-            
             if (card.sequence_id !== undefined) {
-                // It's a max tech card
                 cardType = 'max tech';
                 imageName = card.sequence_id;
             } else if (card.trigger) {
-                // It's a special card (has trigger field)
                 cardType = 'special';
-                imageName = card.number;
+                imageName = card.number || card['card number']; // Try both
             } else {
-                // It's a regular card
                 cardType = 'regular';
-                imageName = card.number;
+                imageName = card['card number'] || card.number; // Try both
             }
             
+            console.log('Loading:', cardType, imageName); // Debug line
+            
+            // Background image
             const bgPath = `${cardType}/card_images/${imageName}.webp`;
             document.getElementById('card-bg').style.backgroundImage = `url(${bgPath})`;
             
@@ -561,6 +560,12 @@
                 btn.className = 'choice-btn';
                 btn.textContent = card[`choice_${letter}`];
                 btn.onclick = () => makeChoice(card, letter);
+                
+                // Choice button background
+                const choicePath = `${cardType}/choice_${letter.toLowerCase()}/${imageName}.webp`;
+                btn.style.backgroundImage = `url(${choicePath})`;
+                btn.style.backgroundSize = 'cover';
+                btn.style.backgroundPosition = 'center';
                 
                 // Stat preview
                 const preview = document.createElement('div');
