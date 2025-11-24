@@ -797,34 +797,54 @@
             }
 
         function previewStats(statsStr) {
-            const tempStats = { ...gameState.stats };
-            if (!statsStr) return;
+            if (!statsStr) {
+                updateHUD();
+                return;
+            }
             
-            statsStr.split(',').forEach(change => {
+            const tempStats = { ...gameState.stats };
+            const changes = statsStr.split(',').map(s => s.trim());
+            
+            changes.forEach(change => {
+                // HANDLE BOTH "Finance -2" AND "Finance-2"
                 const match = change.match(/(.+?)\s*([+-]\d+)/);
                 if (!match) return;
-                const [, stat, value] = match;
+                let [, stat, value] = match;
+                
+                // Remove trailing hyphen/plus from stat name if present
+                stat = stat.replace(/[-+]$/, '').trim();
+                
+                console.log('Previewing:', stat, value);
+                
                 if (tempStats[stat] !== undefined && tempStats[stat] !== 999) {
                     tempStats[stat] = Math.max(0, Math.min(10, tempStats[stat] + parseInt(value)));
                 }
             });
             
-            Object.keys(gameState.stats).forEach(stat => {
+            // Update bars for ALL changed stats
+            changes.forEach(change => {
+                const match = change.match(/(.+?)\s*([+-]\d+)/);
+                if (!match) return;
+                let [, stat] = match;
+                stat = stat.replace(/[-+]$/, '').trim();
+                
                 const value = tempStats[stat];
                 const percentage = (value / 10) * 100;
                 const statKey = stat.toLowerCase().replace('-', '');
                 const fillEl = document.getElementById(`${statKey}-fill`);
+                
+                console.log('Updating:', statKey, value, 'was', gameState.stats[stat]);
+                
                 if (fillEl) {
                     fillEl.style.width = `${percentage}%`;
                     fillEl.style.background = value > gameState.stats[stat] 
-                        ? 'linear-gradient(90deg, #00ff00, #00dd00)' // BRIGHTER GREEN
+                        ? 'linear-gradient(90deg, #00ff00, #00dd00)'
                         : value < gameState.stats[stat]
                         ? 'linear-gradient(90deg, #ff8888, #cc6666)'
                         : 'linear-gradient(90deg, #00ff88, #00cc66)';
                 }
             });
         }
-
         function showEnding(statsStr) {
             const container = document.getElementById('card-container');
             const isWin = statsStr.includes('GAME_WIN');
