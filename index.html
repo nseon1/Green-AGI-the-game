@@ -1,0 +1,785 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green AGI: The Alignment Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3443 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #game-container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border: 2px solid #00ff88;
+            padding: 40px;
+            max-width: 600px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .modal-content h1 {
+            margin-bottom: 20px;
+            color: #00ff88;
+        }
+
+        .modal-content p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #aaa;
+        }
+
+        .modal-content button {
+            margin-top: 20px;
+            padding: 15px 40px;
+            background: #00ff88;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .modal-content button:hover {
+            background: #00cc66;
+            transform: scale(1.05);
+        }
+
+        /* HUD */
+        #hud {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        #year-display {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-bar {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .stat-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .stat-fill-container {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #00ff88;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .stat-fill.locked {
+            background: linear-gradient(90deg, #ff00ff, #cc00cc);
+        }
+
+        #archetype-display {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Card */
+        #card-container {
+            perspective: 1000px;
+        }
+
+        .card {
+            background: rgba(26, 26, 46, 0.95);
+            border: 3px solid #00ff88;
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .card-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #ddd;
+            text-align: center;
+        }
+
+        .choices {
+            display: grid;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .choice-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .choice-btn.clicked {
+            background: rgba(0, 255, 136, 0.5);
+            border-color: #00cc66;
+        }
+
+        .stat-preview {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #00ff88;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            margin-bottom: 5px;
+        }
+
+        .choice-btn:hover .stat-preview {
+            opacity: 1;
+        }
+
+        .stat-change {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .stat-change.positive { color: #00ff88; }
+        .stat-change.negative { color: #ff4444; }
+        .stat-change.neutral { color: #888; }
+
+        .result-text {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #ddd;
+            line-height: 1.6;
+        }
+
+        #continue-btn {
+            display: block;
+            margin: 20px auto 0;
+            padding: 15px 40px;
+            background: #00ff88;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        #continue-btn:hover {
+            background: #00cc66;
+            transform: scale(1.05);
+        }
+
+        /* Game Over */
+        .game-over {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .game-over h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #ff4444;
+        }
+
+        .game-over.win h2 {
+            color: #00ff88;
+        }
+
+        .ending-title {
+            font-size: 28px;
+            color: #00ff88;
+            margin: 20px 0;
+        }
+
+        .archetype-scores {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .archetype-score {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Modal -->
+        <div id="start-modal" class="modal">
+            <div class="modal-content">
+                <h1>🌱 Green AGI: The Alignment Game 🤖</h1>
+                <p>You are the leader of a nation in 2027. AGI has arrived, and the world is changing faster than anyone predicted.</p>
+                <p>Balance four key stats: <strong>Finance</strong>, <strong>Social</strong>, <strong>Human-AI Relations</strong>, and <strong>Control</strong>. Let any fall to 0 or rise to 10, and crisis cards will trigger.</p>
+                <p>Navigate three stages across 30+ years. Your choices shape humanity's relationship with artificial intelligence.</p>
+                <p>Will you forge harmony, seize control, or witness the end of everything?</p>
+                <button onclick="startGame()">Begin Your Journey</button>
+            </div>
+        </div>
+
+        <!-- HUD -->
+        <div id="hud" class="hidden">
+            <div id="year-display">Year: 2027 | Tech: 0 | Stage: 1</div>
+            <div class="stats-grid">
+                <div class="stat-bar">
+                    <div class="stat-name">
+                        <span>Finance</span>
+                        <span id="finance-val">5</span>
+                    </div>
+                    <div class="stat-fill-container">
+                        <div class="stat-fill" id="finance-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-name">
+                        <span>Social</span>
+                        <span id="social-val">5</span>
+                    </div>
+                    <div class="stat-fill-container">
+                        <div class="stat-fill" id="social-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-name">
+                        <span>Human-AI</span>
+                        <span id="humanai-val">5</span>
+                    </div>
+                    <div class="stat-fill-container">
+                        <div class="stat-fill" id="humanai-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-name">
+                        <span>Control</span>
+                        <span id="control-val">5</span>
+                    </div>
+                    <div class="stat-fill-container">
+                        <div class="stat-fill" id="control-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="stat-bar" id="doppelganger-bar">
+                    <div class="stat-name">
+                        <span>Doppelganger</span>
+                        <span id="doppelganger-val">0</span>
+                    </div>
+                    <div class="stat-fill-container">
+                        <div class="stat-fill" id="doppelganger-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="archetype-display">Archetypes: Imperator:0 | Steward:0 | Architect:0 | Prophet:0 | Ascendant:0</div>
+        </div>
+
+        <!-- Card Display -->
+        <div id="card-container" class="hidden">
+            <div class="card">
+                <div class="card-bg" id="card-bg"></div>
+                <div class="card-content">
+                    <div class="card-title" id="card-title">Card Title</div>
+                    <div class="card-text" id="card-text">Event text goes here...</div>
+                    <div class="choices" id="choices"></div>
+                    <div class="result-text hidden" id="result-text"></div>
+                    <button id="continue-btn" class="hidden" onclick="nextCard()">Continue →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            year: 2027,
+            stage: 1,
+            tech: 0,
+            stats: { Finance: 5, Social: 5, 'Human-AI': 5, Control: 5, doppelganger: 0 },
+            archetypes: { Imperator: 0, Steward: 0, Architect: 0, Prophet: 0, Ascendant: 0 },
+            inSequence: false,
+            sequenceCards: [],
+            specialQueue: [],
+            deck: [],
+            usedCards: [],
+            stageInitialized: false
+        };
+
+        let regularCards = [];
+        let specialCards = [];
+        let maxTechCards = [];
+
+        // Load JSON
+        async function loadJSON() {
+            try {
+                const [reg, spec, maxTech] = await Promise.all([
+                    fetch('greenagi_regular_cards.json').then(r => r.json()),
+                    fetch('greenagi_special_cards.json').then(r => r.json()),
+                    fetch('max_tech.json').then(r => r.json())
+                ]);
+                regularCards = reg;
+                specialCards = spec;
+                maxTechCards = maxTech;
+            } catch (error) {
+                console.error('Error loading cards:', error);
+                alert('Failed to load game data. Check console.');
+            }
+        }
+
+        function startGame() {
+            document.getElementById('start-modal').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('card-container').classList.remove('hidden');
+            initStage();
+        }
+
+        function initStage() {
+            gameState.stageInitialized = true;
+            gameState.deck = regularCards.filter(c => c.stage === gameState.stage);
+            
+            // Extract starting cards
+            const startingCards = gameState.deck.filter(c => c['starting_card?'] === 'yes');
+            gameState.deck = gameState.deck.filter(c => c['starting_card?'] !== 'yes');
+            
+            // Shuffle remaining deck
+            gameState.deck = shuffleArray(gameState.deck);
+            
+            // Queue starting cards first
+            gameState.sequenceCards = startingCards;
+            gameState.inSequence = true;
+            
+            // Remove doppelganger at stage 2
+            if (gameState.stage === 2) {
+                delete gameState.stats.doppelganger;
+                document.getElementById('doppelganger-bar').classList.add('hidden');
+            }
+            
+            updateHUD();
+            showCard();
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function showCard() {
+            let card;
+            
+            if (gameState.sequenceCards.length > 0) {
+                card = gameState.sequenceCards.shift();
+                gameState.inSequence = true;
+            } else if (gameState.specialQueue.length > 0) {
+                card = gameState.specialQueue.shift();
+            } else {
+                if (gameState.deck.length === 0) {
+                    // Reshuffle used cards
+                    gameState.deck = shuffleArray(gameState.usedCards);
+                    gameState.usedCards = [];
+                }
+                card = gameState.deck.shift();
+                gameState.usedCards.push(card);
+                
+                // Increment year and tech
+                gameState.year++;
+                gameState.tech++;
+                
+                // Check for tech threshold
+                checkTechThreshold();
+            }
+            
+            displayCard(card);
+            updateHUD();
+        }
+
+        function checkTechThreshold() {
+            const thresholds = { 1: 10, 2: 12, 3: 15 };
+            if (gameState.tech >= thresholds[gameState.stage]) {
+                triggerMaxTechSequence();
+            }
+        }
+
+        function triggerMaxTechSequence() {
+            gameState.inSequence = true;
+            const sequences = {
+                1: [0, 1, 2, 3, 4, 5], // Default sequence
+                2: [11, 12, 13, 14, 15, 16],
+                3: [17, 18]
+            };
+            
+            gameState.sequenceCards = maxTechCards.filter(c => 
+                sequences[gameState.stage].includes(c.sequence_id)
+            );
+        }
+
+        function displayCard(card) {
+            document.getElementById('card-title').textContent = card.card_name;
+            document.getElementById('card-text').textContent = card.event_text;
+            
+            // Background image
+            const bgPath = `../../images/subfolder/${card['card number'] || card.number}.webp`;
+            document.getElementById('card-bg').style.backgroundImage = `url(${bgPath})`;
+            
+            // Build choices
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            
+            const choices = ['A', 'B', 'C', 'D'].filter(l => card[`choice_${l}`]);
+            
+            choices.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = card[`choice_${letter}`];
+                btn.onclick = () => makeChoice(card, letter);
+                
+                // Stat preview
+                const preview = document.createElement('div');
+                preview.className = 'stat-preview';
+                preview.innerHTML = generateStatPreview(card[`stats_${letter}`]);
+                btn.appendChild(preview);
+                
+                choicesDiv.appendChild(btn);
+            });
+            
+            document.getElementById('result-text').classList.add('hidden');
+            document.getElementById('continue-btn').classList.add('hidden');
+        }
+
+        function generateStatPreview(statsStr) {
+            if (!statsStr) return '<span class="stat-change neutral">No changes</span>';
+            
+            const changes = statsStr.split(',').map(s => s.trim());
+            return changes.map(change => {
+                const match = change.match(/(.+?)\s*([+-]\d+)/);
+                if (!match) return '';
+                
+                const [, stat, value] = match;
+                const num = parseInt(value);
+                const className = num > 0 ? 'positive' : num < 0 ? 'negative' : 'neutral';
+                return `<span class="stat-change ${className}">${stat}: ${value}</span>`;
+            }).join('');
+        }
+
+        function makeChoice(card, letter) {
+            // Disable all buttons
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            });
+            
+            // Highlight clicked button
+            event.currentTarget.classList.add('clicked');
+            
+            // Apply stats
+            applyStats(card[`stats_${letter}`]);
+            
+            // Show result text
+            const resultText = card[`text_click_${letter}`];
+            if (resultText) {
+                document.getElementById('result-text').textContent = resultText;
+                document.getElementById('result-text').classList.remove('hidden');
+            }
+            
+            // Check for special commands
+            checkSpecialCommands(card[`stats_${letter}`]);
+            
+            // Show continue button
+            document.getElementById('continue-btn').classList.remove('hidden');
+        }
+
+        function applyStats(statsStr) {
+            if (!statsStr) return;
+            
+            const changes = statsStr.split(',').map(s => s.trim());
+            changes.forEach(change => {
+                const match = change.match(/(.+?)\s*([+-]\d+)/);
+                if (!match) return;
+                
+                const [, statName, value] = match;
+                const num = parseInt(value);
+                
+                // Handle archetypes
+                if (statName.startsWith('Arch_')) {
+                    const archetype = statName.replace('Arch_', '');
+                    gameState.archetypes[archetype] = (gameState.archetypes[archetype] || 0) + num;
+                    return;
+                }
+                
+                // Handle regular stats
+                if (gameState.stats[statName] !== undefined && gameState.stats[statName] !== 999) {
+                    gameState.stats[statName] += num;
+                    // Clamp to 0-10
+                    gameState.stats[statName] = Math.max(0, Math.min(10, gameState.stats[statName]));
+                }
+            });
+            
+            updateHUD();
+            
+            // Check for special triggers (only outside sequence)
+            if (!gameState.inSequence) {
+                checkSpecialTriggers();
+            }
+        }
+
+        function checkSpecialCommands(statsStr) {
+            if (!statsStr) return;
+            
+            // Check for SET commands
+            if (statsStr.includes('SET:')) {
+                const setMatch = statsStr.match(/SET:\s*(.+?)(?:;|$)/);
+                if (setMatch) {
+                    const pairs = setMatch[1].split(',').map(s => s.trim());
+                    pairs.forEach(pair => {
+                        const [stat, val] = pair.split(':').map(s => s.trim());
+                        const value = parseInt(val);
+                        if (stat !== 'Tech' && gameState.stats[stat] !== undefined) {
+                            gameState.stats[stat] = value;
+                        }
+                    });
+                }
+            }
+            
+            // Check for TRANSITION
+            if (statsStr.includes('TRANSITION:')) {
+                const transMatch = statsStr.match(/TRANSITION:\s*(\d+)/);
+                if (transMatch) {
+                    gameState.stage = parseInt(transMatch[1]);
+                    gameState.tech = 0;
+                    gameState.inSequence = false;
+                    gameState.sequenceCards = [];
+                    gameState.stageInitialized = false;
+                }
+            }
+            
+            // Check for WAR_PATH
+            if (statsStr.includes('WAR_PATH_START')) {
+                const warCards = maxTechCards.filter(c => c.sequence_id >= 6 && c.sequence_id <= 10);
+                gameState.sequenceCards.push(...warCards);
+            }
+            
+            // Check for GOTO
+            if (statsStr.includes('GOTO:')) {
+                const gotoMatch = statsStr.match(/GOTO:\s*(\w+)/);
+                if (gotoMatch) {
+                    const targetId = gotoMatch[1];
+                    // Handle GOTO logic if needed
+                }
+            }
+            
+            // Check for endings
+            if (statsStr.includes('GAME_WIN') || statsStr.includes('GAME_OVER')) {
+                setTimeout(() => showEnding(statsStr), 1000);
+            }
+        }
+
+        function checkSpecialTriggers() {
+            Object.keys(gameState.stats).forEach(stat => {
+                const value = gameState.stats[stat];
+                if (value === 999) return; // Skip locked stats
+                
+                const trigger = specialCards.find(c => 
+                    c.trigger === stat && 
+                    c.value === value && 
+                    c.stage === gameState.stage &&
+                    !gameState.specialQueue.includes(c)
+                );
+                
+                if (trigger) {
+                    gameState.specialQueue.push(trigger);
+                }
+            });
+        }
+
+        function nextCard() {
+            if (gameState.sequenceCards.length === 0) {
+                gameState.inSequence = false;
+                if (!gameState.stageInitialized) {
+                initStage();
+                return;
+                }
+            }
+
+            
+            
+            showCard();
+        }
+
+        function updateHUD() {
+            document.getElementById('year-display').textContent = 
+                `Year: ${gameState.year} | Tech: ${gameState.tech} | Stage: ${gameState.stage}`;
+            
+            Object.keys(gameState.stats).forEach(stat => {
+                const value = gameState.stats[stat];
+                const isLocked = value === 999;
+                const displayValue = isLocked ? '∞' : value;
+                const percentage = isLocked ? 100 : (value / 10) * 100;
+                
+                const statKey = stat.toLowerCase().replace('-', '');
+                const valEl = document.getElementById(`${statKey}-val`);
+                const fillEl = document.getElementById(`${statKey}-fill`);
+                
+                if (valEl) valEl.textContent = displayValue;
+                if (fillEl) {
+                    fillEl.style.width = `${percentage}%`;
+                    if (isLocked) fillEl.classList.add('locked');
+                }
+            });
+            
+            const archetypeStr = Object.entries(gameState.archetypes)
+                .map(([k, v]) => `${k}:${v}`)
+                .join(' | ');
+            document.getElementById('archetype-display').textContent = `Archetypes: ${archetypeStr}`;
+        }
+
+        function showEnding(statsStr) {
+            const container = document.getElementById('card-container');
+            const isWin = statsStr.includes('GAME_WIN');
+            
+            let endingType = 'Unknown';
+            if (statsStr.includes('PARADISE')) endingType = 'Paradise Achieved';
+            else if (statsStr.includes('SCIENCE')) endingType = 'Scientific Transcendence';
+            else if (statsStr.includes('CONTROL')) endingType = 'Total Control';
+            else if (statsStr.includes('MERGE')) endingType = 'Human-AI Merger';
+            else if (statsStr.includes('GAME_OVER')) endingType = 'Game Over';
+            
+            const topArchetype = Object.entries(gameState.archetypes)
+                .sort((a, b) => b[1] - a[1])[0];
+            
+            container.innerHTML = `
+                <div class="card game-over ${isWin ? 'win' : ''}">
+                    <h2>${isWin ? '🎉 Victory!' : '💀 Defeat'}</h2>
+                    <div class="ending-title">${endingType}</div>
+                    <p>Final Year: ${gameState.year}</p>
+                    <p>Dominant Archetype: ${topArchetype[0]} (${topArchetype[1]} points)</p>
+                    <div class="archetype-scores">
+                        ${Object.entries(gameState.archetypes)
+                            .map(([k, v]) => `<div class="archetype-score">${k}: ${v}</div>`)
+                            .join('')}
+                    </div>
+                    <button onclick="location.reload()">Play Again</button>
+                </div>
+            `;
+        }
+
+        // Initialize
+        loadJSON().then(() => {
+            console.log('Game data loaded successfully');
+        });
+    </script>
+</body>
+</html>
+```
