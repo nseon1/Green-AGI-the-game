@@ -412,6 +412,7 @@
             specialQueue: [],
             deck: [],
             usedCards: []
+            stageInitialized: false
         };
 
         let regularCards = [];
@@ -443,6 +444,7 @@
         }
 
         function initStage() {
+            gameState.stageInitialized = true;
             gameState.deck = regularCards.filter(c => c.stage === gameState.stage);
             
             // Extract starting cards
@@ -659,7 +661,7 @@
                     gameState.tech = 0;
                     gameState.inSequence = false;
                     gameState.sequenceCards = [];
-                    setTimeout(() => initStage(), 100);
+                    gameState.stageInitialized = false;
                 }
             }
             
@@ -705,6 +707,12 @@
         function nextCard() {
             if (gameState.sequenceCards.length === 0) {
                 gameState.inSequence = false;
+                if (!gameState.stageInitialized) {
+                initStage();
+                return;
+                }
+            }
+
             
             
             showCard();
