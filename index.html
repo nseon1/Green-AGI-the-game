@@ -158,15 +158,15 @@
         }
 
         .card-bg {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-size: cover;
             background-position: center;
-            opacity: 0.15;
-            z-index: 0;
+            opacity: 0.6;
+            z-index: -1;
         }
 
         .card-content {
@@ -260,7 +260,7 @@
         }
 
         #continue-btn {
-            display: block;
+            display: none !important;
             margin: 20px auto 0;
             padding: 15px 40px;
             background: #00ff88;
@@ -560,15 +560,14 @@
             
             choices.forEach(letter => {
                 const btn = document.createElement('button');
+                btn.addEventListener('mouseenter', () => previewStats(card[`stats_${letter}`]));
+                btn.addEventListener('mouseleave', () => updateHUD());
                 btn.className = 'choice-btn';
                 btn.textContent = card[`choice_${letter}`];
                 btn.onclick = () => makeChoice(card, letter);
                 
                 // Choice button background
                 const choicePath = `${CLOUDINARY_BASE}${folderName}/choice_${letter.toLowerCase()}/${imageName}.webp`;
-                btn.style.backgroundImage = `url(${choicePath})`;
-                btn.style.backgroundSize = 'cover';
-                btn.style.backgroundPosition = 'center';
                 
                 // Stat preview
                 const preview = document.createElement('div');
@@ -598,7 +597,22 @@
             }).join('');
         }
 
-        function makeChoice(card, letter) {
+            function makeChoice(card, letter) {
+            // Define paths for choice image
+            const CLOUDINARY_BASE = 'https://res.cloudinary.com/dadn9n77f/image/upload/';
+            let cardType, imageName;
+            if (card.sequence_id !== undefined) {
+                cardType = 'max tech';
+                imageName = card.sequence_id;
+            } else if (card.trigger) {
+                cardType = 'special';
+                imageName = card.number ?? card['card number'];
+            } else {
+                cardType = 'regular';
+                imageName = card['card number'] ?? card.number;
+            }
+            const folderName = cardType.replace(/ /g, '_');
+            
             // Disable all buttons
             document.querySelectorAll('.choice-btn').forEach(btn => {
                 btn.disabled = true;
@@ -607,6 +621,10 @@
             
             // Highlight clicked button
             event.currentTarget.classList.add('clicked');
+            
+            // Show clicked choice's image as background
+            const choicePath = `${CLOUDINARY_BASE}${folderName}/choice_${letter.toLowerCase()}/${imageName}.webp`;
+            document.getElementById('card-bg').style.backgroundImage = `url(${choicePath})`;
             
             // Apply stats
             applyStats(card[`stats_${letter}`]);
@@ -621,10 +639,11 @@
             // Check for special commands
             checkSpecialCommands(card[`stats_${letter}`]);
             
-            // Show continue button
-            document.getElementById('continue-btn').classList.remove('hidden');
-        }
-
+            // Enable click-anywhere to continue
+            setTimeout(() => {
+                document.addEventListener('click', nextCard, { once: true });
+            }, 500);
+        }  
         function applyStats(statsStr) {
             if (!statsStr) return;
             
@@ -767,6 +786,33 @@
                 .map(([k, v]) => `${k}:${v}`)
                 .join(' | ');
             document.getElementById('archetype-display').textContent = `Archetypes: ${archetypeStr}`;
+        }
+
+                function previewStats(statsStr) {
+            const tempStats = { ...gameState.stats };
+            if (!statsStr) return;
+            
+            statsStr.split(',').forEach(change => {
+                const match = change.match(/(.+?)\s*([+-]\d+)/);
+                if (!match) return;
+                const [, stat, value] = match;
+                if (tempStats[stat] !== undefined && tempStats[stat] !== 999) {
+                    tempStats[stat] = Math.max(0, Math.min(10, tempStats[stat] + parseInt(value)));
+                }
+            });
+            
+            Object.keys(tempStats).forEach(stat => {
+                const value = tempStats[stat];
+                const percentage = (value / 10) * 100;
+                const statKey = stat.toLowerCase().replace('-', '');
+                const fillEl = document.getElementById(`${statKey}-fill`);
+                if (fillEl) {
+                    fillEl.style.width = `${percentage}%`;
+                    fillEl.style.background = value > gameState.stats[stat] 
+                        ? 'linear-gradient(90deg, #88ff88, #66cc66)' // lighter green
+                        : 'linear-gradient(90deg, #ff8888, #cc6666)'; // red
+                }
+            });
         }
 
         function showEnding(statsStr) {
