@@ -131,6 +131,22 @@
             background: linear-gradient(90deg, #00ff88, #00cc66);
             transition: width 0.3s ease;
             border-radius: 10px;
+            position: relative; /* ADD */
+        }
+
+        /* ADD: Ghost bar showing previous value */
+        .stat-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            width: var(--ghost-width, 0);
+            transition: width 0.3s;
+            pointer-events: none;
         }
 
         .stat-fill.locked {
@@ -778,6 +794,7 @@
                     if (valEl) valEl.textContent = displayValue;
                     if (fillEl) {
                         fillEl.style.width = `${percentage}%`;
+                        fillEl.style.setProperty('--ghost-width', '0'); // ADD THIS
                         
                         // Color based on value threshold
                         if (isLocked) {
@@ -836,7 +853,9 @@
                 console.log('Updating:', statKey, value, 'was', gameState.stats[stat]);
                 
                 if (fillEl) {
+                    const oldPercentage = (gameState.stats[stat] / 10) * 100;
                     fillEl.style.width = `${percentage}%`;
+                    fillEl.style.setProperty('--ghost-width', `${oldPercentage}%`); // ADD THIS
                     fillEl.style.background = value > gameState.stats[stat] 
                         ? 'linear-gradient(90deg, #00ff00, #00dd00)'
                         : value < gameState.stats[stat]
