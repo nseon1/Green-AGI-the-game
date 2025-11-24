@@ -548,8 +548,8 @@
             
                         // Background image
             const folderName = cardType.replace(/ /g, '_'); // "max tech" → "max_tech"
-            const bgPath = `${folderName}/card_images/${imageName}.webp`;
-            document.getElementById('card-bg').style.backgroundImage = `url(${bgPath})`;
+            const CLOUDINARY_BASE = 'https://res.cloudinary.com/dadn9n77f/image/upload/';
+            const bgPath = `${CLOUDINARY_BASE}${folderName}/card_images/${imageName}.webp`;
             
             // Build choices
             const choicesDiv = document.getElementById('choices');
@@ -564,7 +564,7 @@
                 btn.onclick = () => makeChoice(card, letter);
                 
                 // Choice button background
-                const choicePath = `${folderName}/choice_${letter.toLowerCase()}/${imageName}.webp`;
+                const choicePath = `${CLOUDINARY_BASE}${folderName}/choice_${letter.toLowerCase()}/${imageName}.webp`;
                 btn.style.backgroundImage = `url(${choicePath})`;
                 
                 // Stat preview
