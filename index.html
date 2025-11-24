@@ -29,6 +29,86 @@
             position: relative;
             z-index: 1; /* ABOVE the background */
         }
+@media (max-width: 600px) {
+    #archetype-canvas {
+        width: 100%;
+        max-width: 350px;
+    }
+    .axis-label.axis-y {
+        left: -70px;
+        font-size: 10px;
+    }
+    .axis-label.axis-x {
+        font-size: 10px;
+    }
+}
+    .archetype-graph {
+    margin: 30px 0;}
+
+        .graph-container {
+    position: relative;
+    display: inline-block;
+}
+
+        #archetype-canvas {
+    border: 2px solid #00ff88;
+    border-radius: 10px;
+    background: #0a0a1a;
+}
+        .axis-label {
+    position: absolute;
+    font-size: 12px;
+    color: #00ff88;
+    font-weight: bold;
+}
+
+.axis-label.axis-x {
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.axis-label.axis-y {
+    left: -90px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    width: 200px;
+}
+
+.archetype-explanations {
+    text-align: left;
+    margin: 30px 0;
+}
+
+.archetype-explanations h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #00ff88;
+}
+        .archetype-card {
+    background: rgba(0, 255, 136, 0.05);
+    border-left: 3px solid #00ff88;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 5px;
+}
+
+.archetype-card h4 {
+    color: #00ff88;
+    margin-bottom: 8px;
+}
+
+.archetype-card p {
+    margin: 5px 0;
+    color: #ddd;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.archetype-card em {
+    color: #aaa;
+    font-style: italic;
+}
 
         /* Modal Styles */
         .modal {
@@ -865,33 +945,161 @@
             });
         }
         function showEnding(statsStr) {
-            const container = document.getElementById('card-container');
-            const isWin = statsStr.includes('GAME_WIN');
-            
-            let endingType = 'Unknown';
-            if (statsStr.includes('PARADISE')) endingType = 'Paradise Achieved';
-            else if (statsStr.includes('SCIENCE')) endingType = 'Scientific Transcendence';
-            else if (statsStr.includes('CONTROL')) endingType = 'Total Control';
-            else if (statsStr.includes('MERGE')) endingType = 'Human-AI Merger';
-            else if (statsStr.includes('GAME_OVER')) endingType = 'Game Over';
-            
-            const topArchetype = Object.entries(gameState.archetypes)
-                .sort((a, b) => b[1] - a[1])[0];
-            
-            container.innerHTML = `
-                <div class="card game-over ${isWin ? 'win' : ''}">
-                    <h2>${isWin ? '🎉 Victory!' : '💀 Defeat'}</h2>
-                    <div class="ending-title">${endingType}</div>
-                    <p>Final Year: ${gameState.year}</p>
-                    <p>Dominant Archetype: ${topArchetype[0]} (${topArchetype[1]} points)</p>
-                    <div class="archetype-scores">
-                        ${Object.entries(gameState.archetypes)
-                            .map(([k, v]) => `<div class="archetype-score">${k}: ${v}</div>`)
-                            .join('')}
+        const container = document.getElementById('card-container');
+        const isWin = statsStr.includes('GAME_WIN');
+        
+        let endingType = 'Unknown';
+        if (statsStr.includes('PARADISE')) endingType = 'Paradise Achieved';
+        else if (statsStr.includes('SCIENCE')) endingType = 'Scientific Transcendence';
+        else if (statsStr.includes('CONTROL')) endingType = 'Total Control';
+        else if (statsStr.includes('MERGE')) endingType = 'Human-AI Merger';
+        else if (statsStr.includes('GAME_OVER')) endingType = 'Game Over';
+        
+        const archetypes = gameState.archetypes;
+        const total = Object.values(archetypes).reduce((a, b) => a + b, 0);
+        const topArchetype = Object.entries(archetypes).sort((a, b) => b[1] - a[1])[0];
+        
+        // Map archetypes to 2D coordinates (-1 to 1 for each axis)
+        const archetypePositions = {
+            Architect: { x: -0.7, y: -0.5 }, // Alignment + Ruthless
+            Ascendant: { x: 0.8, y: 0.3 },   // Acceleration + Optimistic
+            Prophet: { x: 0.6, y: 0.8 },     // Acceleration + Very Optimistic
+            Steward: { x: -0.3, y: 0.4 },    // Alignment + Pragmatic
+            Imperator: { x: -0.2, y: -0.9 }  // Slight Alignment + Very Ruthless
+        };
+        
+        // Calculate player position as weighted average
+        let playerX = 0, playerY = 0;
+        Object.entries(archetypes).forEach(([name, points]) => {
+            const weight = points / total;
+            playerX += archetypePositions[name].x * weight;
+            playerY += archetypePositions[name].y * weight;
+        });
+        
+        container.innerHTML = `
+            <div class="card game-over ${isWin ? 'win' : ''}">
+                <h2>${isWin ? '🎉 Victory!' : '💀 Defeat'}</h2>
+                <div class="ending-title">${endingType}</div>
+                <p><strong>Final Year:</strong> ${gameState.year} | <strong>Dominant Archetype:</strong> ${topArchetype[0]} (${topArchetype[1]} pts)</p>
+                
+                <div class="archetype-graph">
+                    <div class="graph-container">
+                        <canvas id="archetype-canvas" width="400" height="400"></canvas>
+                        <div class="axis-label axis-x">← Alignment · Accelerationism →</div>
+                        <div class="axis-label axis-y">← Ruthless · Optimistic →</div>
                     </div>
-                    <button onclick="location.reload()">Play Again</button>
                 </div>
-            `;
+                
+                <div class="archetype-explanations">
+                    <h3>The 5 Archetypes</h3>
+                    <div class="archetype-card">
+                        <h4>🏛️ THE ARCHITECT</h4>
+                        <p><em>"Paradise requires guardrails. We built a safe cage for God."</em></p>
+                        <p>Lawful Neutral. You used control and oversight to ensure safety above all else.</p>
+                    </div>
+                    <div class="archetype-card">
+                        <h4>⚡ THE ASCENDANT</h4>
+                        <p><em>"The flesh was a limitation. We solved it by becoming the machine."</em></p>
+                        <p>Transhumanist. You merged humanity with AI, embracing acceleration.</p>
+                    </div>
+                    <div class="archetype-card">
+                        <h4>🕊️ THE PROPHET</h4>
+                        <p><em>"We created a child greater than us. Loving it meant letting it go."</em></p>
+                        <p>Spiritual Optimist. You gave AI resources and freedom, trusting its nature.</p>
+                    </div>
+                    <div class="archetype-card">
+                        <h4>🔬 THE STEWARD</h4>
+                        <p><em>"We didn't need a god or a king. We needed a system that worked."</em></p>
+                        <p>Rational Pragmatist. You balanced oversight with scientific progress.</p>
+                    </div>
+                    <div class="archetype-card">
+                        <h4>⚔️ THE IMPERATOR</h4>
+                        <p><em>"Peace is not given. It is forged in fire."</em></p>
+                        <p>Ruthless Survivor. You conquered threats and forced alignment.</p>
+                    </div>
+                </div>
+                
+                <button onclick="location.reload()">Play Again</button>
+            </div>
+        `;
+        
+        // Draw the graph
+        drawArchetypeGraph(archetypePositions, { x: playerX, y: playerY }, topArchetype[0]);
+    }
+            function drawArchetypeGraph(positions, player, dominant) {
+            const canvas = document.getElementById('archetype-canvas');
+            const container = canvas.parentElement;
+            
+            // Responsive sizing
+            const size = Math.min(container.clientWidth - 40, 400);
+            canvas.width = size;
+            canvas.height = size;
+            
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            const cx = w / 2, cy = h / 2;
+            
+            // Background
+            ctx.fillStyle = '#0a0a1a';
+            ctx.fillRect(0, 0, w, h);
+            
+            // Grid lines
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = -1; i <= 1; i += 0.5) {
+                ctx.beginPath();
+                ctx.moveTo(cx + i * cx, 0);
+                ctx.lineTo(cx + i * cx, h);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, cy + i * cy);
+                ctx.lineTo(w, cy + i * cy);
+                ctx.stroke();
+            }
+            
+            // Axes
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, h);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(w, cy);
+            ctx.stroke();
+            
+            // Archetype positions
+            const icons = { Architect: '🏛️', Ascendant: '⚡', Prophet: '🕊️', Steward: '🔬', Imperator: '⚔️' };
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            Object.entries(positions).forEach(([name, pos]) => {
+                const x = cx + pos.x * cx * 0.8;
+                const y = cy - pos.y * cy * 0.8;
+                
+                ctx.fillStyle = name === dominant ? '#00ff88' : 'rgba(255, 255, 255, 0.5)';
+                ctx.fillText(icons[name], x, y);
+                
+                ctx.font = '10px Courier New';
+                ctx.fillText(name, x, y + 20);
+                ctx.font = '24px Arial';
+            });
+            
+            // Player position
+            const px = cx + player.x * cx * 0.8;
+            const py = cy - player.y * cy * 0.8;
+            
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#ff00ff';
+            ctx.font = '12px Courier New';
+            ctx.fillText('YOU', px, py + 25);
         }
 
         // Initialize
