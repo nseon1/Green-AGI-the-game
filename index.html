@@ -796,7 +796,7 @@
                 document.getElementById('archetype-display').textContent = `Archetypes: ${archetypeStr}`;
             }
 
-                function previewStats(statsStr) {
+        function previewStats(statsStr) {
             const tempStats = { ...gameState.stats };
             if (!statsStr) return;
             
@@ -809,7 +809,6 @@
                 }
             });
             
-            // UPDATE ALL STATS, not just the one in the string
             Object.keys(gameState.stats).forEach(stat => {
                 const value = tempStats[stat];
                 const percentage = (value / 10) * 100;
@@ -817,12 +816,11 @@
                 const fillEl = document.getElementById(`${statKey}-fill`);
                 if (fillEl) {
                     fillEl.style.width = `${percentage}%`;
-                    // Color based on CHANGE, not final value
                     fillEl.style.background = value > gameState.stats[stat] 
-                        ? 'linear-gradient(90deg, #88ff88, #66cc66)'
+                        ? 'linear-gradient(90deg, #00ff00, #00dd00)' // BRIGHTER GREEN
                         : value < gameState.stats[stat]
                         ? 'linear-gradient(90deg, #ff8888, #cc6666)'
-                        : 'linear-gradient(90deg, #00ff88, #00cc66)'; // no change
+                        : 'linear-gradient(90deg, #00ff88, #00cc66)';
                 }
             });
         }
