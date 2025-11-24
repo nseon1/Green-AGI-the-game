@@ -707,6 +707,7 @@
                 
                 // Check if stage transition occurred
                 if (gameState.stage > 1 && gameState.tech === 0) {
+                    gameState.usedCards = [];
                     initStage();
                     return;
                 }
