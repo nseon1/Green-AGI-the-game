@@ -530,8 +530,24 @@
             document.getElementById('card-title').textContent = card.card_name;
             document.getElementById('card-text').textContent = card.event_text;
             
-            // Background image
-            const bgPath = `../../images/subfolder/${card['card number'] || card.number}.webp`;
+            // Background image -
+            let cardType, imageName;
+            
+            if (card.sequence_id !== undefined) {
+                // It's a max tech card
+                cardType = 'max tech';
+                imageName = card.sequence_id;
+            } else if (card.trigger) {
+                // It's a special card (has trigger field)
+                cardType = 'special';
+                imageName = card.number;
+            } else {
+                // It's a regular card
+                cardType = 'regular';
+                imageName = card.number;
+            }
+            
+            const bgPath = `${cardType}/card_images/${imageName}.webp`;
             document.getElementById('card-bg').style.backgroundImage = `url(${bgPath})`;
             
             // Build choices
