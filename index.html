@@ -527,6 +527,8 @@
         }
 
         function displayCard(card) {
+            console.log('FULL CARD:', card); // 
+            console.log('card number field:', card['card number']); // 
             document.getElementById('card-title').textContent = card.card_name;
             document.getElementById('card-text').textContent = card.event_text;
             
